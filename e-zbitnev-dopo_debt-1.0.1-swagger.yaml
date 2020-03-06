@@ -1,0 +1,255 @@
+openapi: 3.0.0
+servers: []
+info:
+  description: Debt collection
+  version: "1.0.1"
+  title: Дополучкино - отдел взыскания
+paths:
+
+  /api/v1/admin/debt/loans:
+    get:
+      description: Возвращает список займов для отдела взыскания
+      parameters:
+        - name: filter
+          in: query
+          description: Набор фильтров
+          required: false
+          schema:
+            type: array
+            items:
+              type: object
+          
+      responses:
+        '200':
+          description: Список займов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+          
+  /api/v1/admin/debt/loans/assign:
+    post:
+      description: Назначить займы на сотрудника
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employee_id:
+                  type: integer
+                  description: ID сотрудника взыскания
+                loans:
+                  type: array
+                  description: Массив id займов
+                  items:
+                    type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        
+  /api/v1/admin/debt/loans/{id}/add_event:
+    post:
+      description: Добавить запланированное событие 
+      parameters:
+        - name: id
+          in: path
+          description: ID займа
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  description: Тип события
+                  type: string
+                  enum: [incoming_call, homephone_call, cellphone_call, email]
+                date:
+                  description: Дата события
+                  type: string
+                  format: date
+                comment:
+                  description: Комментарий к событию
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  /api/v1/admin/debt/loans/{id}/send_mail:
+    post:
+      description: Отправить клиенту с этим займом письмо по заданному шаблону
+      parameters:
+        - name: id
+          in: path
+          description: ID займа
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                template:
+                  description: ID шаблона письма
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+          
+  /api/v1/admin/mail/templates/{type}:
+    get:
+      description: Получить список шаблонов для отправки писем
+      parameters:
+        - name: type
+          in: path
+          description: Тип шаблонов (для взыскания, для продажников)
+          required: true
+          schema:
+            type: string
+            enum: [debt, sales]
+      responses:
+        '200':
+          description: Список шаблонов для писем
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailTemplateList'
+        '404':
+          description: Данный тип шаблонов не найден
+          
+  /api/v1/admin/mail/send:
+    post:
+      description: Отправить письмо по шаблону
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                template:
+                  description: ID шаблона письма
+                  type: integer
+                loan:
+                  description: ID займа, по которому отправляется письмо
+                  type: integer
+      responses:
+        '200':
+          description: Письмо отправлено
+        '404':
+          description: Шаблон или займ не найден
+        '422':
+          description: Не удалось отправить письмо
+      
+components:
+  schemas:
+    LoanList:
+      type: object
+      description: Список займов
+      properties:
+        total:
+          type: integer
+          description: Кол-во займов в ответе
+        loans:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              fio:
+                type: string
+                description: ФИО клиента
+              created_at:
+                type: string
+                description: Дата взятия займа (DD.MM.YYYY HH:MM:SS)
+              period:
+                type: integer
+                description: Срок кредита в днях
+              pay_type:
+                type: string
+                description: Способ выдачи займа
+                enum: [bank_card]
+              amount:
+                type: integer
+                description: Сумма займа в копейках
+              closed_expected:
+                type: string
+                description: Дата возврата по договору (DD.MM.YYYY HH:MM:SS)
+              overdue_period:
+                type: integer
+                description: Срок просрочки в днях
+              last_execution_date:
+                type: string
+                description: Дата последнего мероприятия (DD.MM.YYYY HH:MM:SS)
+              next_execution_date:
+                type: string
+                description: Запланированно на (DD.MM.YYYY HH:MM:SS)
+              responsible_manager:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  full_name:
+                    type: string
+              actual_address_region:
+                type: string
+                description: Область проживания клиента
+              current_time:
+                type: string
+                description: Текущее время клиента (HH:MM:SS)
+    MailTemplateList:
+      type: object
+      description: Шаблон для отправки письма
+      properties:
+        id:
+          description: ID шаблона
+          type: integer
+        name:
+          description: Имя шаблона
+          type: string
+          example: template.mail.debt_1_day_overdue
+        subject:
+          description: Тема письма (для предпросмотра)
+          type: string
+        body:
+          description: Текст письма (для предпросмотра)
+          type: string
+          
+  responses:
+    Success:
+      description: Запрос завершился удачно
+    Forbidden:
+      description: Недостаточно прав доступа
+    BadRequest:
+      description: Некорректный запрос, ошибка в параметрах запроса
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Error message
+              param:
+                type: string
+                description: Incorrect param name
