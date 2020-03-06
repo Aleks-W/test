@@ -24,21 +24,69 @@ namespace IO.Swagger.Models
     /// 
     /// </summary>
     [DataContract]
-    public partial class Body : IEquatable<Body>
+    public partial class Pet : IEquatable<Pet>
     { 
         /// <summary>
-        /// Updated name of the pet
+        /// Gets or Sets Id
         /// </summary>
-        /// <value>Updated name of the pet</value>
+        [DataMember(Name="id")]
+        public long? Id { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Category
+        /// </summary>
+        [DataMember(Name="category")]
+        public Category Category { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Name
+        /// </summary>
+        [Required]
         [DataMember(Name="name")]
         public string Name { get; set; }
 
         /// <summary>
-        /// Updated status of the pet
+        /// Gets or Sets PhotoUrls
         /// </summary>
-        /// <value>Updated status of the pet</value>
+        [Required]
+        [DataMember(Name="photoUrls")]
+        public List<string> PhotoUrls { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Tags
+        /// </summary>
+        [DataMember(Name="tags")]
+        public List<Tag> Tags { get; set; }
+
+        /// <summary>
+        /// pet status in the store
+        /// </summary>
+        /// <value>pet status in the store</value>
+        [JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public enum StatusEnum
+        {
+            /// <summary>
+            /// Enum AvailableEnum for available
+            /// </summary>
+            [EnumMember(Value = "available")]
+            AvailableEnum = 0,
+            /// <summary>
+            /// Enum PendingEnum for pending
+            /// </summary>
+            [EnumMember(Value = "pending")]
+            PendingEnum = 1,
+            /// <summary>
+            /// Enum SoldEnum for sold
+            /// </summary>
+            [EnumMember(Value = "sold")]
+            SoldEnum = 2        }
+
+        /// <summary>
+        /// pet status in the store
+        /// </summary>
+        /// <value>pet status in the store</value>
         [DataMember(Name="status")]
-        public string Status { get; set; }
+        public StatusEnum? Status { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -47,8 +95,12 @@ namespace IO.Swagger.Models
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("class Body {\n");
+            sb.Append("class Pet {\n");
+            sb.Append("  Id: ").Append(Id).Append("\n");
+            sb.Append("  Category: ").Append(Category).Append("\n");
             sb.Append("  Name: ").Append(Name).Append("\n");
+            sb.Append("  PhotoUrls: ").Append(PhotoUrls).Append("\n");
+            sb.Append("  Tags: ").Append(Tags).Append("\n");
             sb.Append("  Status: ").Append(Status).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
@@ -72,24 +124,44 @@ namespace IO.Swagger.Models
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((Body)obj);
+            return obj.GetType() == GetType() && Equals((Pet)obj);
         }
 
         /// <summary>
-        /// Returns true if Body instances are equal
+        /// Returns true if Pet instances are equal
         /// </summary>
-        /// <param name="other">Instance of Body to be compared</param>
+        /// <param name="other">Instance of Pet to be compared</param>
         /// <returns>Boolean</returns>
-        public bool Equals(Body other)
+        public bool Equals(Pet other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
             return 
                 (
+                    Id == other.Id ||
+                    Id != null &&
+                    Id.Equals(other.Id)
+                ) && 
+                (
+                    Category == other.Category ||
+                    Category != null &&
+                    Category.Equals(other.Category)
+                ) && 
+                (
                     Name == other.Name ||
                     Name != null &&
                     Name.Equals(other.Name)
+                ) && 
+                (
+                    PhotoUrls == other.PhotoUrls ||
+                    PhotoUrls != null &&
+                    PhotoUrls.SequenceEqual(other.PhotoUrls)
+                ) && 
+                (
+                    Tags == other.Tags ||
+                    Tags != null &&
+                    Tags.SequenceEqual(other.Tags)
                 ) && 
                 (
                     Status == other.Status ||
@@ -108,8 +180,16 @@ namespace IO.Swagger.Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
+                    if (Id != null)
+                    hashCode = hashCode * 59 + Id.GetHashCode();
+                    if (Category != null)
+                    hashCode = hashCode * 59 + Category.GetHashCode();
                     if (Name != null)
                     hashCode = hashCode * 59 + Name.GetHashCode();
+                    if (PhotoUrls != null)
+                    hashCode = hashCode * 59 + PhotoUrls.GetHashCode();
+                    if (Tags != null)
+                    hashCode = hashCode * 59 + Tags.GetHashCode();
                     if (Status != null)
                     hashCode = hashCode * 59 + Status.GetHashCode();
                 return hashCode;
@@ -119,12 +199,12 @@ namespace IO.Swagger.Models
         #region Operators
         #pragma warning disable 1591
 
-        public static bool operator ==(Body left, Body right)
+        public static bool operator ==(Pet left, Pet right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(Body left, Body right)
+        public static bool operator !=(Pet left, Pet right)
         {
             return !Equals(left, right);
         }
